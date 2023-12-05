@@ -44,6 +44,5 @@ namespace RootMotion.Demos {
 
             return base.Jump();
         }
-
     }
 }
