@@ -16,6 +16,7 @@ public class GrabController : IDisposable
     private bool _canUpdateTouch;
     private float _hypotenuse;
     private float _touchYCoordinate;
+    private int _rayCastLayerMask = 1 << 9 | 1 << 6;
 
     public GrabController(Ctx ctx)
     {
@@ -55,7 +56,7 @@ public class GrabController : IDisposable
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if (Physics.SphereCast(ray, _raycastRadius, out hit, Mathf.Infinity, 1 << 6))
+        if (Physics.SphereCast(ray, _raycastRadius, out hit, Mathf.Infinity, _rayCastLayerMask))
         {
             if (hit.rigidbody != null)
             {

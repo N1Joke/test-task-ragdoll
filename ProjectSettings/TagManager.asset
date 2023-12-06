@@ -12,9 +12,9 @@ TagManager:
   - Water
   - UI
   - Grabbable
-  - 
-  - 
-  - 
+  - Terrain
+  - Ragdoll
+  - Collision box
   - 
   - 
   - 
