@@ -1,5 +1,6 @@
 using Cinemachine;
 using System;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,6 +25,15 @@ public class CameraController
     private Image _thirdPersonImage;
     private float _freeCameraMoveSpeed = 5f;
     private float _freeCameraRotationSpeed = 0.25f;
+    //Zoom
+    private float _minZoom = 2f;
+    private float _maxZoom = 60f;
+    private Touch _touchZero;
+    private Touch _touchOne;
+    private Vector2 _touchZeroPrevPos;
+    private Vector2 _touchOnePrevPos;
+    private float _prevTouchDeltaMag;
+    private float _touchDeltaMag;
 
     public Action<CameraMod> OnCameraModChanged;
 
@@ -77,23 +87,48 @@ public class CameraController
                 }
             case CameraMod.FreeLook:
                 {
-                    //Free camera movement
-                    float horizontal = _ctx.joystickCameraPosition.Horizontal;
-                    float vertical = _ctx.joystickCameraPosition.Vertical;
-
-                    Vector3 moveDirection = new Vector3(horizontal, 0f, vertical).normalized;
-                    Vector3 moveAmount = moveDirection * _freeCameraMoveSpeed * deltaTime;
-
-                    _ctx.freeLookVirtualCamera.transform.Translate(moveAmount);
-
-                    //Free camera rotation
-                    float mouseX = _ctx.joystickCameraRotation.Horizontal;
-                    float mouseY = _ctx.joystickCameraRotation.Vertical;
-
-                    _ctx.freeLookVirtualCamera.transform.Rotate(Vector3.up * mouseX * _freeCameraRotationSpeed);
-                    _ctx.freeLookVirtualCamera.transform.Rotate(Vector3.left * mouseY * _freeCameraRotationSpeed);
+                    UpdateFreeCameraPosition(deltaTime);
+                    UpdateFreeCameraRotation();
+                    CheckZoom();
                     break;
                 }
+        }
+    }
+
+    private void UpdateFreeCameraPosition(float deltaTime)
+    {
+        float horizontal = _ctx.joystickCameraPosition.Horizontal;
+        float vertical = _ctx.joystickCameraPosition.Vertical;
+
+        Vector3 moveDirection = new Vector3(horizontal, 0f, vertical).normalized;
+        Vector3 moveAmount = moveDirection * _freeCameraMoveSpeed * deltaTime;
+
+        _ctx.freeLookVirtualCamera.transform.Translate(moveAmount);
+    }
+
+    private void UpdateFreeCameraRotation()
+    {
+        float mouseX = _ctx.joystickCameraRotation.Horizontal;
+        float mouseY = _ctx.joystickCameraRotation.Vertical;
+
+        _ctx.freeLookVirtualCamera.transform.Rotate(Vector3.up * mouseX * _freeCameraRotationSpeed);
+        _ctx.freeLookVirtualCamera.transform.Rotate(Vector3.left * mouseY * _freeCameraRotationSpeed);
+    }
+
+    private void CheckZoom()
+    {
+        if (Input.touchCount == 2)
+        {
+            _touchZero = Input.GetTouch(0);
+            _touchOne = Input.GetTouch(1);
+            _touchZeroPrevPos = _touchZero.position - _touchZero.deltaPosition;
+            _touchOnePrevPos = _touchOne.position - _touchOne.deltaPosition;
+            _prevTouchDeltaMag = (_touchZeroPrevPos - _touchOnePrevPos).magnitude;
+            _touchDeltaMag = (_touchZero.position - _touchOne.position).magnitude;
+            float deltaMagnitudeDiff = _prevTouchDeltaMag - _touchDeltaMag;
+            float newSize = _ctx.freeLookVirtualCamera.m_Lens.FieldOfView + deltaMagnitudeDiff * 0.01f;
+            newSize = Mathf.Clamp(newSize, _minZoom, _maxZoom);
+            _ctx.freeLookVirtualCamera.m_Lens.FieldOfView = newSize;
         }
     }
 
