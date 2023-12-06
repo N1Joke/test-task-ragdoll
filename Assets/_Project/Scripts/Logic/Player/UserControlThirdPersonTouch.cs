@@ -6,6 +6,8 @@ public class UserControlThirdPersonTouch : UserControlThirdPerson
     [HideInInspector]
     public Joystick joystick;
 
+    private bool _doJump;
+
     protected override void Start()
     {
         // get the transform of the main camera
@@ -22,6 +24,10 @@ public class UserControlThirdPersonTouch : UserControlThirdPerson
             h = joystick.Horizontal;
             v = joystick.Vertical;
         }
+
+        state.jump = canJump && _doJump;
+        _doJump = false;
+
         // calculate move direction
         Vector3 move = cam.rotation * new Vector3(h, 0f, v).normalized;
 
@@ -45,8 +51,5 @@ public class UserControlThirdPersonTouch : UserControlThirdPerson
         state.lookPos = transform.position + cam.forward * 100f;
     }
 
-    public void DoJump()
-    {
-        state.jump = canJump;
-    }
+    public void DoJump() => _doJump = true;
 }

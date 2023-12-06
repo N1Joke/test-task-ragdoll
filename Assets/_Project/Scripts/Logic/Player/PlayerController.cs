@@ -1,6 +1,7 @@
 using UnityEngine.UI;
+using System;
 
-public class PlayerController
+public class PlayerController : IDisposable
 {
     public struct Ctx
     {
@@ -9,6 +10,7 @@ public class PlayerController
         public PlayerView view;
         public PlayerInputType playerInputType;
         public Button jumpButton;
+        public CameraController cameraController;
     }
 
     private readonly Ctx _ctx;
@@ -22,7 +24,6 @@ public class PlayerController
             case PlayerInputType.Touch:
                 {
                     _ctx.view.UserControlThirdPerson.enabled = false;
-                    _ctx.view.UserControlThirdPersonTouch.enabled = true;
                     _ctx.view.CharacterPuppet.userControl = _ctx.view.UserControlThirdPersonTouch;
                     _ctx.view.UserControlThirdPersonTouch.joystick = _ctx.joystick;
                     if (_ctx.jumpButton != null)
@@ -31,9 +32,51 @@ public class PlayerController
                 }
             case PlayerInputType.Mouse:
                 {
-                    _ctx.view.UserControlThirdPerson.enabled = true;
                     _ctx.view.UserControlThirdPersonTouch.enabled = false;
                     _ctx.view.CharacterPuppet.userControl = _ctx.view.UserControlThirdPerson;
+                    break;
+                }
+        }
+
+        TogglePause(false);
+
+        _ctx.cameraController.OnCameraModChanged += OnCameraModChanged;
+    }
+
+    public void Dispose()
+    {
+        _ctx.cameraController.OnCameraModChanged -= OnCameraModChanged;
+    }
+
+    private void OnCameraModChanged(CameraMod cameraMod)
+    {
+        switch (cameraMod)
+        {
+            case CameraMod.FreeLook:
+                {
+                    TogglePause(true);
+                    break;
+                }
+            case CameraMod.ThirdPerson:
+                {
+                    TogglePause(false);
+                    break;
+                }
+        }
+    }    
+
+    private void TogglePause(bool pause)
+    {
+        switch (_ctx.playerInputType)
+        {
+            case PlayerInputType.Touch:
+                {
+                    _ctx.view.UserControlThirdPersonTouch.enabled = !pause;
+                    break;
+                }
+            case PlayerInputType.Mouse:
+                {
+                    _ctx.view.UserControlThirdPerson.enabled = !pause;
                     break;
                 }
         }

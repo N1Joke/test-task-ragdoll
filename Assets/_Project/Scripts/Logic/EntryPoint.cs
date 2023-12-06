@@ -1,4 +1,5 @@
 using Cinemachine;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,6 +12,10 @@ public class EntryPoint : MonoBehaviour
     [SerializeField] private Joystick _movementJoystick;
     [SerializeField] private Joystick _cameraJoystick;
     [SerializeField] private Button _jumpButton;
+    [SerializeField] private Button _freeLookButton;
+    [SerializeField] private Button _thirdPersonButton;
+    [SerializeField] private Color _activeColor;
+    [SerializeField] private Color _inactiveColor;
 
     private CameraController _cameraController;
     private PlayerController _playerController;
@@ -18,11 +23,16 @@ public class EntryPoint : MonoBehaviour
     private void Awake()
     {
         _cameraController = new CameraController(new CameraController.Ctx
-        {
+        {           
             freeLookVirtualCamera = _freeLookVirtualCamera,
             thirdPersonVirtualCamera = _thirdPersonVirtualCamera,
-            joystick = _cameraJoystick,
-            playerInputType = _gameSettings.PlayerInputType
+            joystickCameraRotation = _cameraJoystick,
+            joystickCameraPosition = _movementJoystick,
+            playerInputType = _gameSettings.PlayerInputType,
+            freeLookButton = _freeLookButton,
+            thirdPersonButton = _thirdPersonButton,
+            activeColor = _activeColor,
+            inactiveColor = _inactiveColor
         });
 
         _playerController = new PlayerController(new PlayerController.Ctx
@@ -30,8 +40,14 @@ public class EntryPoint : MonoBehaviour
             joystick = _movementJoystick,
             playerInputType = _gameSettings.PlayerInputType,
             view = _playerView,
-            jumpButton = _jumpButton
-        });
+            jumpButton = _jumpButton,
+            cameraController = _cameraController
+        });                
+    }
+
+    private void OnDestroy()
+    {
+        _playerController.Dispose();
     }
 
     private void Update()
