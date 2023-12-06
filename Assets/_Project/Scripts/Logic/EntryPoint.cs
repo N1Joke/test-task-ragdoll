@@ -18,6 +18,7 @@ public class EntryPoint : MonoBehaviour
     [SerializeField] private Color _inactiveColor;
 
     private CameraController _cameraController;
+    private GrabController _grabController;
     private PlayerController _playerController;
 
     private void Awake()
@@ -42,19 +43,27 @@ public class EntryPoint : MonoBehaviour
             view = _playerView,
             jumpButton = _jumpButton,
             cameraController = _cameraController
-        });                
+        });
+
+        _grabController = new GrabController(new GrabController.Ctx
+        {
+            cameraController = _cameraController,
+            mainCamera = Camera.main
+        });
     }
 
     private void OnDestroy()
     {
         _playerController.Dispose();
+        _grabController.Dispose();
     }
 
     private void Update()
     {
         if (_cameraController != null)
-        {
             _cameraController.Update(Time.deltaTime);
-        }
+
+        if (_grabController != null)
+            _grabController.Update(Time.deltaTime);
     }
 }

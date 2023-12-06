@@ -1,4 +1,5 @@
 using RootMotion.Demos;
+using System.Collections;
 using UnityEngine;
 
 public class UserControlThirdPersonTouch : UserControlThirdPerson
@@ -7,6 +8,7 @@ public class UserControlThirdPersonTouch : UserControlThirdPerson
     public Joystick joystick;
 
     private bool _doJump;
+    private WaitForFixedUpdate _waitForFixedUpdate = new WaitForFixedUpdate();
 
     protected override void Start()
     {
@@ -25,8 +27,7 @@ public class UserControlThirdPersonTouch : UserControlThirdPerson
             v = joystick.Vertical;
         }
 
-        state.jump = canJump && _doJump;
-        _doJump = false;
+        state.jump = canJump && _doJump;        
 
         // calculate move direction
         Vector3 move = cam.rotation * new Vector3(h, 0f, v).normalized;
@@ -51,5 +52,12 @@ public class UserControlThirdPersonTouch : UserControlThirdPerson
         state.lookPos = transform.position + cam.forward * 100f;
     }
 
-    public void DoJump() => _doJump = true;
+    public void DoJump() => StartCoroutine(DoJumpRoutine());
+
+    private IEnumerator DoJumpRoutine()
+    {
+        _doJump = true;
+        yield return _waitForFixedUpdate;
+        _doJump = false;
+    }
 }

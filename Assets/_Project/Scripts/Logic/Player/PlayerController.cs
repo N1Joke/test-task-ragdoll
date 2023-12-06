@@ -54,11 +54,13 @@ public class PlayerController : IDisposable
         {
             case CameraMod.FreeLook:
                 {
+                    _ctx.jumpButton.gameObject.SetActive(false);
                     TogglePause(true);
                     break;
                 }
             case CameraMod.ThirdPerson:
                 {
+                    _ctx.jumpButton.gameObject.SetActive(true);
                     TogglePause(false);
                     break;
                 }
@@ -71,7 +73,7 @@ public class PlayerController : IDisposable
         {
             case PlayerInputType.Touch:
                 {
-                    _ctx.view.UserControlThirdPersonTouch.enabled = !pause;
+                    _ctx.view.UserControlThirdPersonTouch.enabled = !pause;                    
                     break;
                 }
             case PlayerInputType.Mouse:
@@ -80,5 +82,7 @@ public class PlayerController : IDisposable
                     break;
                 }
         }
+
+        _ctx.jumpButton.enabled = !pause;
     }
 }
