@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 
 public class GrabController : IDisposable
@@ -16,7 +17,11 @@ public class GrabController : IDisposable
     private bool _canUpdateTouch;
     private float _hypotenuse;
     private float _touchYCoordinate;
-    private int _rayCastLayerMask = 1 << 9 | 1 << 6;
+    private int _rayCastLayerMaskGrab = 1 << 9 | 1 << 6;
+    private int _rayCastLayerMaskMoveObject = 1 << 9 | 1 << 6 | 1 << 7;
+    private int _nonRayCastLayer = 10;
+    private int _tempObjectLayer;
+    private float _maxRrayCastMoveObjectDistance = 40f;
 
     public GrabController(Ctx ctx)
     {
@@ -56,7 +61,7 @@ public class GrabController : IDisposable
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if (Physics.SphereCast(ray, _raycastRadius, out hit, Mathf.Infinity, _rayCastLayerMask))
+        if (Physics.SphereCast(ray, _raycastRadius, out hit, Mathf.Infinity, _rayCastLayerMaskGrab))
         {
             if (hit.rigidbody != null)
             {
@@ -66,6 +71,8 @@ public class GrabController : IDisposable
 
                 Vector3 direction = _ctx.mainCamera.ScreenToViewportPoint(Input.mousePosition);
                 _touchYCoordinate = direction.y;
+                _tempObjectLayer = _currentPickedItem.gameObject.layer;
+                _currentPickedItem.gameObject.layer = _nonRayCastLayer;
             }
         }
     }
@@ -78,7 +85,8 @@ public class GrabController : IDisposable
             return;
 
         _currentPickedItem.isKinematic = false;
-        _currentPickedItem = null;
+        _currentPickedItem.gameObject.layer = _tempObjectLayer;
+        _currentPickedItem = null;        
     }
 
     private void UpdatePos(Vector2 pos)
@@ -86,15 +94,23 @@ public class GrabController : IDisposable
         if (!_canUpdateTouch || _currentPickedItem == null || !_canPickUpObject)
             return;
 
-        Vector3 direction = _ctx.mainCamera.ScreenToViewportPoint(Input.mousePosition);
-        _hypotenuse = Mathf.Sqrt(Mathf.Pow((_ctx.mainCamera.transform.position.y - _currentPickedItem.transform.position.y), 2) + Mathf.Pow((_currentPickedItem.transform.position.z - _ctx.mainCamera.transform.position.z), 2));
-        direction.z = _hypotenuse;
-        float inputY = direction.y - _touchYCoordinate;
-        direction = _ctx.mainCamera.ViewportToWorldPoint(direction);
-        direction.y = Mathf.Lerp(direction.y, _ctx.mainCamera.transform.position.y, inputY);
-        direction.y = Mathf.Clamp(direction.y, 0.5f, _ctx.mainCamera.transform.position.y);
-        direction.z = _currentPickedItem.transform.position.z;
-        _currentPickedItem.transform.position = direction;
+        //Vector3 direction = _ctx.mainCamera.ScreenToViewportPoint(pos);
+        //_hypotenuse = Mathf.Sqrt(Mathf.Pow((_ctx.mainCamera.transform.position.y - _currentPickedItem.transform.position.y), 2) + Mathf.Pow((_currentPickedItem.transform.position.z - _ctx.mainCamera.transform.position.z), 2));
+        //direction.z = _hypotenuse;
+        //float inputY = direction.y - _touchYCoordinate;
+        //direction = _ctx.mainCamera.ViewportToWorldPoint(direction);
+        //direction.y = Mathf.Lerp(direction.y, _ctx.mainCamera.transform.position.y, inputY);
+        //direction.y = Mathf.Clamp(direction.y, 0.5f, _ctx.mainCamera.transform.position.y);
+        //direction.z = _currentPickedItem.transform.position.z;
+
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, _maxRrayCastMoveObjectDistance, _rayCastLayerMaskMoveObject))
+        {
+            Vector3 targetPosition = hit.point;
+            _currentPickedItem.transform.position = targetPosition + Vector3.up;
+        }
     }
 
     public void Update(float deltaTime)
